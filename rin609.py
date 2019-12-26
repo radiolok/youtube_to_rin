@@ -8,7 +8,6 @@ import os
 import pickle
 import json
 from time import sleep
-import threading
 import serial
 
 import argparse

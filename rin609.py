@@ -134,12 +134,12 @@ def process_comments(tty, id, youtube, next_page_token, last_name):
 def encode_comment(text):
     text = text.upper()
     text = text.replace('Ъ','Ь')
-    text = text.encode(encoding = 'koi7_h2', errors = 'ignore')
+    text = text.encode(encoding = 'koi7_n2', errors = 'ignore')
     return text
 
 def decode_comment(symbol):
     text = str(symbol)
-    text = text.decode(encoding = 'koi7_h2', errors = 'ignore')
+    text = text.decode(encoding = 'koi7_n2', errors = 'ignore')
     return text
 
 def post_comment(text, youtube):

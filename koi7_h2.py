@@ -83,7 +83,7 @@ decoding_table = (
     '!'        #*  0x21 -> EXCLAMATION MARK
     '"'        #*  0x22 -> QUOTATION MARK
     '#'        #*  0x23 -> NUMBER SIGN
-    '$'        #*  0x24 -> DOLLAR SIGN
+    '¤'        #*  0x24 -> CURRENCY SIGN
     '%'        #*  0x25 -> PERCENT SIGN
     '&'        #*  0x26 -> AMPERSAND
     "'"        #*  0x27 -> APOSTROPHE

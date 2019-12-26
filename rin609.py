@@ -202,10 +202,7 @@ if __name__ == '__main__':
         while True:
             length, next_page_token, last_name = process_comments(RinTTY, liveChatId, youtube, next_page_token, last_name)
             apiRequestCount += 2
-            wait_Rin = length / 58 # on 625 bod only 58 symbols can be sended to RIN
-            delay = max(2, wait_Rin)
-            print("Next request in", delay, " seconds")
-            sleep(delay)
+            sleep(2)
             if (apiRequestCount % 100)  == 0:
                 print("We spent ", int(apiRequestCount/100), " of limit")
     else:

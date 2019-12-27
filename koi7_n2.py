@@ -1,6 +1,8 @@
-""" Python Character Mapping Codec koi7_r generated from 'MAPPINGS/VENDORS/MISC/KOI8-R.TXT' with gencodec.py.
-
-"""#"
+"""
+    Python Character Mapping Codec koi7_n2.
+    Written by Artem Kashkanov(@radiolok).
+    Edited by Mihail Serebryakov(@simsanutiy).
+"""
 
 import codecs
 
@@ -32,7 +34,7 @@ class StreamReader(Codec,codecs.StreamReader):
 
 def getregentry():
     return codecs.CodecInfo(
-        name='koi7-h2',
+        name='koi7-n2',
         encode=Codec().encode,
         decode=Codec().decode,
         incrementalencoder=IncrementalEncoder,
@@ -81,7 +83,7 @@ decoding_table = (
     '!'        #*  0x21 -> EXCLAMATION MARK
     '"'        #*  0x22 -> QUOTATION MARK
     '#'        #*  0x23 -> NUMBER SIGN
-    '$'        #*  0x24 -> DOLLAR SIGN
+    '¤'        #*  0x24 -> CURRENCY SIGN
     '%'        #*  0x25 -> PERCENT SIGN
     '&'        #*  0x26 -> AMPERSAND
     "'"        #*  0x27 -> APOSTROPHE

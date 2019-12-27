@@ -43,14 +43,16 @@ def sendRin(tty, message):
     for item in range(length):
         symbol = chr(message[item])
         tty.write(symbol)
-        while tty.out_waiting > 0:
-            pass
         pos += 1
         if (symbol == chr(0x0a)) or (pos > 79):
             pos = 0
+            while tty.out_waiting > 0:
+                pass
             sleep(0.1)
             if tty.emulation != None:
-                print("")  
+                print("")
+    while tty.out_waiting > 0:
+        pass
     return    
 
 def get_authenticated_service():

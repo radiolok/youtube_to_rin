@@ -7,10 +7,11 @@ API_VERSION = 'v3'
 import os
 import pickle
 import json
-from time import sleep
+from time import sleep, time
 import serial
 
 import argparse
+
 
 import google.oauth2.credentials
 from google.auth.transport.requests import Request
@@ -31,7 +32,8 @@ class RinEmul():
 
 def clearRin(tty):
 	#clear screen
-	tty.write(chr(0x1F))
+    tty.write(bytes.fromhex('1f'))
+    sleep(0.1)
 
 pos = 0
 row = 0
@@ -39,20 +41,22 @@ row = 0
 def sendRin(tty, message):
     global pos
     global row
+    start_pos = pos
+    print(message)
     length = len(message)
     for item in range(length):
-        symbol = chr(message[item])
+        symbol = message[item:item+1]
         tty.write(symbol)
         pos += 1
-        if (symbol == chr(0x0a)) or (pos > 79):
+        if (symbol == bytes.fromhex('0a')) or (pos > 80):
+            delay = (pos - start_pos)*0.0176 + 0.05
+            sleep(delay)
             pos = 0
-            while tty.out_waiting > 0:
-                pass
-            sleep(0.1)
-            if tty.emulation != None:
-                print("")
-    while tty.out_waiting > 0:
-        pass
+            start_pos = pos
+            tty.flush()
+    tty.flush()
+    delay = (pos - start_pos)*0.0176
+    sleep(delay)
     return    
 
 def get_authenticated_service():
@@ -205,7 +209,7 @@ if __name__ == '__main__':
             apiRequestCount += 2
             sleep(2)
             if (apiRequestCount % 100)  == 0:
-                print("We spent ", int(apiRequestCount/100), " of limit")
+                print("We spent ", int(apiRequestCount/100), "% of limit")
     else:
         print("Add youtube stream ID to start. use skip option to skip previous comments")
     

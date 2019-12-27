@@ -1,3 +1,7 @@
+## Description
+
+This scripts can be used for grabbing liveChat messages from youtube Streams in Real-Time and sending them to Serial port.
+
 ## Prerequisites
 
 *   Python 2.6 or greater
@@ -23,7 +27,7 @@
 
 *   Clone repository to /RIN folder
 
-*   Copy koi7-h2 file into <Python>/Lib/encodings/ folder
+*   Copy koi7-n2 file into <Python>/Lib/encodings/ folder
   
 *   Run rin609.py
     ```

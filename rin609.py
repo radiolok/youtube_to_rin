@@ -32,7 +32,7 @@ class RinEmul():
 
 def clearRin(tty):
 	#clear screen
-    tty.write(bytes.fromhex('1f'))
+    tty.write(b'\1f')
     sleep(0.1)
 
 pos = 0

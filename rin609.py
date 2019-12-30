@@ -29,6 +29,9 @@ class RinEmul():
         print(message, end='', flush=True)
         pass
 
+    def flush(self):
+        return
+
 
 def clearRin(tty):
 	#clear screen
@@ -162,12 +165,12 @@ def decode_comment(symbol):
     text = text.decode(encoding = 'koi7_n2', errors = 'ignore')
     return text
 
-def post_comment(text, youtube):
+def post_comment(text, youtube, chatId):
     request = youtube.liveChatMessages().insert(
         part="snippet",
         body={
             "snippet": {
-                "liveChatId": liveChatId,
+                "liveChatId": chatId,
                 "type": "textMessageEvent",
                 "textMessageDetails": {
                     "messageText": text
@@ -195,29 +198,36 @@ def run_live_chat(youtube, tty, videoId, skip):
     if videoId != None:
         apiRequestCount = 0
         liveChatId = get_chat_id(videoId, youtube)
+        if liveChatId == None:
+            print("liveChatId with videoId = ", videoId, " Not found!")
+            return
         apiRequestCount += 4
         next_page_token = None
-        if skip != None:
-            next_page_token = skip_comments(videoId, youtube, next_page_token)
+        if skip == None:# not a error
+            next_page_token = skip_comments(liveChatId, youtube, next_page_token)
             apiRequestCount += 2
         last_name = ''
-        while True:
-            length, next_page_token, last_name = process_comments(RinTTY, videoId, youtube, next_page_token, last_name)
+        threadControl = True
+        while threadControl:
+            length, next_page_token, last_name = process_comments(RinTTY, liveChatId, youtube, next_page_token, last_name)
             apiRequestCount += 2
-            sleep(2)
+            delay = 4#4 seconds if no comments were handled
+            if length:
+                delay = 2
+            sleep(delay)
             if (apiRequestCount % 1000)  == 0:
                 print("We spent ", int(apiRequestCount/100), "% of limit")
                 RinTTY.write(bytes.fromhex('07'))
     else:
-        print("Add youtube stream ID to start. use skip option to skip previous comments")
+        print("Add youtube stream ID to start. use --skip option to skip previous comments")
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--userport')
     parser.add_argument('-v', '--videoId')
-    parser.add_argument('-s', '--skip')
-    parser.add_argument('-m', '--mode', type = str, help='liveChat, statistics, test')
+    parser.add_argument('-s', '--skip', nargs='?', default = False)
+    parser.add_argument('-m', '--mode', type = str, choices=['liveChat', 'statistics', 'test'])
 
     args = parser.parse_args()
 

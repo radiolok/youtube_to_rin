@@ -191,13 +191,33 @@ def test_rin(tty):
         sendRin(RinTTY, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр! The quick brown fox jumps over the lazy dog.\n'))
     RinTTY.write(bytes.fromhex('07')) #bell
 
+def run_live_chat(youtube, tty, videoId, skip):
+    if videoId != None:
+        apiRequestCount = 0
+        liveChatId = get_chat_id(videoId, youtube)
+        apiRequestCount += 4
+        next_page_token = None
+        if skip != None:
+            next_page_token = skip_comments(videoId, youtube, next_page_token)
+            apiRequestCount += 2
+        last_name = ''
+        while True:
+            length, next_page_token, last_name = process_comments(RinTTY, videoId, youtube, next_page_token, last_name)
+            apiRequestCount += 2
+            sleep(2)
+            if (apiRequestCount % 1000)  == 0:
+                print("We spent ", int(apiRequestCount/100), "% of limit")
+                RinTTY.write(bytes.fromhex('07'))
+    else:
+        print("Add youtube stream ID to start. use skip option to skip previous comments")
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--userport')
-    parser.add_argument('-t', '--test')
-    parser.add_argument('-y', '--youtube')
+    parser.add_argument('-v', '--videoId')
     parser.add_argument('-s', '--skip')
+    parser.add_argument('-m', '--mode', type = str, help='liveChat, statistics, test')
 
     args = parser.parse_args()
 
@@ -209,34 +229,17 @@ if __name__ == '__main__':
 
     if RinTTY == None:
         RinTTY = RinEmul()
-
-    clearRin(RinTTY)
-    
-    if args.test != None:
-        test_rin(RinTTY)
-        exit()
-        
-    # When running locally, disable OAuthlib's HTTPs verification. When
-    # running in production *do not* leave this option enabled.
-    # os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-    # Get credentials and create an API client
-    if args.youtube != None:
-        apiRequestCount = 0
-        youtube = get_authenticated_service()
-        liveChatId = get_chat_id(args.youtube, youtube)
-        apiRequestCount += 4
-        next_page_token = None
-        if args.skip != None:
-            next_page_token = skip_comments(liveChatId, youtube, next_page_token)
-            apiRequestCount += 2
-        last_name = ''
-        while True:
-            length, next_page_token, last_name = process_comments(RinTTY, liveChatId, youtube, next_page_token, last_name)
-            apiRequestCount += 2
-            sleep(2)
-            if (apiRequestCount % 1000)  == 0:
-                print("We spent ", int(apiRequestCount/100), "% of limit")
-                RinTTY.write(bytes.fromhex('07'))
     else:
-        print("Add youtube stream ID to start. use skip option to skip previous comments")
+        clearRin(RinTTY)
+
+    if args.mode == "test":
+        test_rin(RinTTY)
+    else:
+        youtube = get_authenticated_service()
+        if args.mode == "liveChat":
+            run_live_chat(youtube, RinTTY, args.videoId, args.skip)
+        if args.mode == "statistics":
+            stats_info(youtube)
+
     
+

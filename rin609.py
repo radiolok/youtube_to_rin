@@ -188,11 +188,29 @@ def stats_info(youtube):
     print("My channel have ", subscribers, " subscribers")
 
 
+def connect_tty(tty, file):
+    terminal = json.load(open(args.terminal))
+    term_parity = 0
+    if terminal["parity"] == 1:
+        term_parity = serial.PARITY_EVEN
+    elif terminal["parity"] == 2:
+        term_parity = serial.PARITY_ODD
+    userport = terminal["userport"]
+    if args.userport != None:
+        userport = args.userport
+    tty = serial.Serial(userport, 
+                            terminal["baudrate"], 
+                            bytesize=terminal["bytesize"], 
+                            timeout=terminal["timeout"],
+                            parity=term_parity, 
+                            stopbits = terminal["stopbits"])
+    return tty
+
 def test_rin(tty):
     for rows in range(12):
-        sendRin(RinTTY, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!\n'))
-        sendRin(RinTTY, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр! The quick brown fox jumps over the lazy dog.\n'))
-    RinTTY.write(bytes.fromhex('07')) #bell
+        sendRin(tty, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!\n'))
+        sendRin(tty, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр! The quick brown fox jumps over the lazy dog.\n'))
+    tty.write(bytes.fromhex('07')) #bell
 
 def run_live_chat(youtube, tty, videoId, skip):
     if videoId != None:
@@ -225,6 +243,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--userport')
+    parser.add_argument('-t', '--terminal')
     parser.add_argument('-v', '--videoId')
     parser.add_argument('-s', '--skip', nargs='?', default = False)
     parser.add_argument('-m', '--mode', type = str, choices=['liveChat', 'statistics', 'test'])
@@ -233,9 +252,8 @@ if __name__ == '__main__':
 
     RinTTY = None
 
-    if args.userport != None:
-        RinTTY = serial.Serial(args.userport, 625, bytesize=7, timeout=0,
-                            parity=serial.PARITY_EVEN, stopbits = 2)
+    if args.terminal != None:
+        RinTTY = connect_tty(RinTTY, args.terminal)
 
     if RinTTY == None:
         RinTTY = RinEmul()

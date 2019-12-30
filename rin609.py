@@ -101,6 +101,19 @@ def skip_comments(id, youtube, next_page_token):
     nextPageToken = response.get('nextPageToken')
     return (nextPageToken)
 
+
+def get_view_count(youtube):
+    request = youtube.channels().list(
+        part="snippet,contentDetails,statistics",
+        mine=True
+    )
+    response = request.execute()
+    items = response.get('items')
+    statistics = items[0].get('statistics')
+    views = statistics.get('viewCount')
+    subscribers = statistics.get('subscriberCount')
+    return (views, subscribers)
+
 def process_comments(tty, id, youtube, next_page_token, last_name):
     response = youtube.liveChatMessages().list(
         liveChatId=id,
@@ -165,8 +178,21 @@ def post_comment(text, youtube):
     response = request.execute()
     return response
 
+def stats_info(youtube):
+
+    views, subscribers = get_view_count(youtube)    
+    print("My channel have ", views, " views")
+    print("My channel have ", subscribers, " subscribers")
+
+
+def test_rin(tty):
+    for rows in range(12):
+        sendRin(RinTTY, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!\n'))
+        sendRin(RinTTY, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр! The quick brown fox jumps over the lazy dog.\n'))
+    RinTTY.write(bytes.fromhex('07')) #bell
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--userport')
     parser.add_argument('-t', '--test')
@@ -187,10 +213,9 @@ if __name__ == '__main__':
     clearRin(RinTTY)
     
     if args.test != None:
-        for rows in range(12):
-            sendRin(RinTTY, encode_comment('Проверка сообщения с переносом строки\n'))
-            sendRin(RinTTY, encode_comment('Проверка сообщения с переносом строки и текстом, который гораздо длиннее 80 символов и поэтому потребует еще одного переноса строки\n'))
+        test_rin(RinTTY)
         exit()
+        
     # When running locally, disable OAuthlib's HTTPs verification. When
     # running in production *do not* leave this option enabled.
     # os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -209,8 +234,9 @@ if __name__ == '__main__':
             length, next_page_token, last_name = process_comments(RinTTY, liveChatId, youtube, next_page_token, last_name)
             apiRequestCount += 2
             sleep(2)
-            if (apiRequestCount % 100)  == 0:
+            if (apiRequestCount % 1000)  == 0:
                 print("We spent ", int(apiRequestCount/100), "% of limit")
+                RinTTY.write(bytes.fromhex('07'))
     else:
         print("Add youtube stream ID to start. use skip option to skip previous comments")
     

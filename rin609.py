@@ -35,7 +35,7 @@ class RinEmul():
 
 def clearRin(tty):
 	#clear screen
-    tty.write(bytes.fromhex('1f'))
+    tty.write(b'\1f')
     sleep(0.1)
 
 pos = 0
@@ -51,7 +51,7 @@ def sendRin(tty, message):
         symbol = message[item:item+1]
         tty.write(symbol)
         pos += 1
-        if (symbol == bytes.fromhex('0a')) or (pos > 80):
+        if (symbol == b'\x0a') or (pos > 80):
             delay = (pos - start_pos)*0.0176 + 0.05
             sleep(delay)
             pos = 0

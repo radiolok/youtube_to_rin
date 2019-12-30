@@ -1,6 +1,7 @@
 {
 "userport": "COM10", 
 "baudrate": 625,
+"__comment__": "Baudrate for each RIN can be unique and should be measured",
 "bytesize":7,
 "parity":1,
 "timeout":0,

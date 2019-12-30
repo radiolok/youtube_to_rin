@@ -210,7 +210,7 @@ def test_rin(tty):
     for rows in range(12):
         sendRin(tty, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!\n'))
         sendRin(tty, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр! The quick brown fox jumps over the lazy dog.\n'))
-    tty.write(bytes.fromhex('07')) #bell
+    tty.write(b'\07') #bell
 
 def run_live_chat(youtube, tty, videoId, skip):
     if videoId != None:

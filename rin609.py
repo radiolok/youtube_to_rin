@@ -5,12 +5,17 @@ API_SERVICE_NAME = 'youtube'
 API_VERSION = 'v3'
 
 import os
+import re
 import pickle
 import json
 from time import sleep, time
 import serial
 
 import argparse
+
+
+from bs4 import BeautifulSoup
+
 
 
 import google.oauth2.credentials
@@ -239,6 +244,68 @@ def run_live_chat(youtube, tty, videoId, skip):
     else:
         print("Add youtube stream ID to start. use --skip option to skip previous comments")
 
+def parse_html(tty, rootDir, filePath):
+    if not os.path.isfile(filePath):
+        return 
+    with open(filePath, encoding="utf-8") as file:
+        soup = BeautifulSoup(file, 'html.parser')
+        print(filePath, rootDir, soup.title.text)
+        ## try to parse top page
+        divBlob = soup.find_all("div", {"class": "b-page-txt"})
+        for div in divBlob:
+            ## looking for ul_razdel:
+            ulBlob = div.find_all("ul", {"class": "ul_razdel"})
+            for ul in ulBlob:
+                liBlob = ul.find_all("li")
+                for li in liBlob:
+                    aBlob = li.find_all('a')
+                    for a in aBlob:
+                        link = a.get('href')
+                        print(a.text, link)
+                        if "http" in link:
+                            if "computer-museum" not in link:
+                                continue
+                        link = re.sub("^http.*\.ru", '', link)
+                        if '#' in link:
+                            continue
+                        if link[0] == "/":
+                            link = link[1:]
+                            while link[0] == "/":
+                                link = link[1:]
+                            dir_path = rootDir
+                        else:
+                            dir_path = os.path.dirname(path)
+                        if link[-1] == "/":
+                            link = link + "index.html"
+                        if ".htm" in link or ".html" in link:
+                            print(dir_path, link, os.path.join(dir_path, link))
+                            parse_html(RinTTY, rootDir, os.path.join(dir_path, link))
+            textBlob = div.find_all("p", {"class": "StoryBody"})
+            for text in textBlob:
+                print(text.text)
+                sendRin(tty, encode_comment(text.text))
+                sendRin(tty, encode_comment('\n'))
+            #for ul in ulBlob
+            #print(div)
+
+def parse_head_html(RinTTY, path):
+    with open(path, encoding="utf-8") as file:
+        soup = BeautifulSoup(file, 'html.parser')
+        print(soup.title.text)
+        ## try to parse top page
+        divBlob = soup.find_all("div", {"class": "b-index-section"})
+        for div in divBlob:
+            ulBlob = div.find_all("ul")
+            for ul in ulBlob:
+                liBlob = ul.find_all("li")
+                for li in liBlob:
+                    aBlob = li.find_all('a')
+                    for a in aBlob:
+                        print(a.text, a.get('href'))
+
+
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -246,7 +313,8 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--terminal')
     parser.add_argument('-v', '--videoId')
     parser.add_argument('-s', '--skip', nargs='?', default = False)
-    parser.add_argument('-m', '--mode', type = str, choices=['liveChat', 'statistics', 'test'])
+    parser.add_argument('-m', '--mode', type = str, choices=['liveChat', 'statistics', 'test','html'])
+    parser.add_argument('--json')
 
     args = parser.parse_args()
 
@@ -262,6 +330,18 @@ if __name__ == '__main__':
 
     if args.mode == "test":
         test_rin(RinTTY)
+    elif args.mode == "html":
+        if args.json and os.path.isfile(args.json):
+            cite = json.load(open(args.json))
+            if not os.path.isdir(cite['path']):
+                print("set proper path in json file")
+                exit()
+            for folder in cite['folders']:
+                path = os.path.join(cite['path'], folder, "index.html")
+                print(path, os.path.isfile(path))
+                parse_html(RinTTY, cite['path'], path)
+        else:
+            print("set proper --html<file path>")
     else:
         youtube = get_authenticated_service()
         if args.mode == "liveChat":

@@ -1,5 +1,5 @@
 {
-"userport": "COM10", 
+"userport": "COM4", 
 "baudrate": 625,
 "__comment__": "Baudrate for each RIN can be unique and should be measured",
 "bytesize":7,

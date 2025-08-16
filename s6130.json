@@ -1,0 +1,12 @@
+{
+"userport": "COM6",
+"encode" : "koi7_n1",
+"baudrate": 110,
+"__comment__": "Baudrate for each RIN can be unique and should be measured",
+"bytesize":7,
+"parity":0,
+"timeout":0,
+"stopbits": 1,
+"rtscts" : 1,
+"dsrdtr" :  1
+}

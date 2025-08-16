@@ -13,10 +13,9 @@ import serial
 
 import argparse
 
-
 from bs4 import BeautifulSoup
 
-
+encode="koi7_n1"
 
 import google.oauth2.credentials
 from google.auth.transport.requests import Request
@@ -159,15 +158,16 @@ def process_comments(tty, id, youtube, next_page_token, last_name):
     return (length, nextPageToken, last_name)
 
 def encode_comment(text):
-    text = text.upper()
+    if encode == "koi7-n2":
+        text = text.upper()
     text = text.replace('Ъ','Ь')
     text = text.replace('Ё','Е')
-    text = text.encode(encoding = 'koi7_n2', errors = 'ignore')
+    text = text.encode(encoding = encode, errors = 'ignore')
     return text
 
 def decode_comment(symbol):
     text = str(symbol)
-    text = text.decode(encoding = 'koi7_n2', errors = 'ignore')
+    text = text.decode(encoding = encode, errors = 'ignore')
     return text
 
 def post_comment(text, youtube, chatId):
@@ -192,29 +192,44 @@ def stats_info(youtube):
     print("My channel have ", views, " views")
     print("My channel have ", subscribers, " subscribers")
 
+parity = {
+    0 : serial.PARITY_NONE,
+    1 : serial.PARITY_EVEN,
+    2 : serial.PARITY_ODD
+}
 
 def connect_tty(tty, file):
     terminal = json.load(open(args.terminal))
-    term_parity = 0
-    if terminal["parity"] == 1:
-        term_parity = serial.PARITY_EVEN
-    elif terminal["parity"] == 2:
-        term_parity = serial.PARITY_ODD
+    term_parity = parity[terminal["parity"]]
     userport = terminal["userport"]
+    dsrdtr = terminal.get("dsrdtr", False)
+    rtscts = terminal.get("rtscts", False)
+    global encode
+    encode = terminal.get("encode", "koi7_n2")
     if args.userport != None:
         userport = args.userport
     tty = serial.Serial(userport, 
                             terminal["baudrate"], 
                             bytesize=terminal["bytesize"], 
                             timeout=terminal["timeout"],
-                            parity=term_parity, 
+                            parity=term_parity,
+                            dsrdtr=dsrdtr,
+                            rtscts=rtscts,
                             stopbits = terminal["stopbits"])
     return tty
 
 def test_rin(tty):
-    for rows in range(12):
-        sendRin(tty, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!\n'))
-        sendRin(tty, encode_comment('В чащах юга жил бы цитрус? Да, но фальшивый экземпляр! The quick brown fox jumps over the lazy dog.\n'))
+    letters = []
+    for i in range(256):
+        letters.append(i)
+    let_b = bytes(letters)
+    for i in range(0,256, 16):
+        tty.write(let_b[i:i+17])
+        tty.write(b'\r\n')
+        tty.flush()
+    for rows in range(3):
+        sendRin(tty, encode_comment('в чащах юга жил бы цитрус? да, но фальшивый экземпляр!\n'))
+        sendRin(tty, encode_comment('В ЧАЩАХ ЮГА ЖИЛ БЫ ЦИТРУС? ДА, НО ФАЛЬШИВЫЙ ЭКЗЕМПЛЯР!\n'))
     tty.write(b'\07') #bell
 
 def run_live_chat(youtube, tty, videoId, skip):
@@ -303,8 +318,18 @@ def parse_head_html(RinTTY, path):
                     for a in aBlob:
                         print(a.text, a.get('href'))
 
-
-
+def text_txt(tty, filePath):
+    if not os.path.isfile(filePath):
+        return 
+    with open(filePath, encoding="utf-8") as file:
+        for line in file:
+            line = line.strip()
+            chunks, chunk_size = len(line), 60
+            cut = [line[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
+            for ch in cut:
+                print(ch)
+                sendRin(tty, encode_comment(ch))
+                sendRin(tty, encode_comment('\r\n'))
 
 if __name__ == '__main__':
 
@@ -313,7 +338,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--terminal')
     parser.add_argument('-v', '--videoId')
     parser.add_argument('-s', '--skip', nargs='?', default = False)
-    parser.add_argument('-m', '--mode', type = str, choices=['liveChat', 'statistics', 'test','html'])
+    parser.add_argument('-m', '--mode', type = str, choices=['liveChat', 'statistics', 'test','html', 'text'])
     parser.add_argument('--json')
 
     args = parser.parse_args()
@@ -330,6 +355,8 @@ if __name__ == '__main__':
 
     if args.mode == "test":
         test_rin(RinTTY)
+    elif args.mode == "text":
+        text_txt(RinTTY, args.json)
     elif args.mode == "html":
         if args.json and os.path.isfile(args.json):
             cite = json.load(open(args.json))

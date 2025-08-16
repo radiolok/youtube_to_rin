@@ -64,10 +64,10 @@ def sendRin(tty, message):
     tty.flush()
     delay = (pos - start_pos)*0.0176
     sleep(delay)
-    return    
+    return
 
 def get_authenticated_service():
-    
+
     credentials = None
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
@@ -88,7 +88,7 @@ def get_authenticated_service():
 
     return build(API_SERVICE_NAME, API_VERSION, credentials = credentials)
 
-def get_chat_id(link, youtube):    
+def get_chat_id(link, youtube):
     request = youtube.liveBroadcasts().list(
         part="snippet,contentDetails,status",
         id=link
@@ -188,7 +188,7 @@ def post_comment(text, youtube, chatId):
 
 def stats_info(youtube):
 
-    views, subscribers = get_view_count(youtube)    
+    views, subscribers = get_view_count(youtube)
     print("My channel have ", views, " views")
     print("My channel have ", subscribers, " subscribers")
 
@@ -208,9 +208,9 @@ def connect_tty(tty, file):
     encode = terminal.get("encode", "koi7_n2")
     if args.userport != None:
         userport = args.userport
-    tty = serial.Serial(userport, 
-                            terminal["baudrate"], 
-                            bytesize=terminal["bytesize"], 
+    tty = serial.Serial(userport,
+                            terminal["baudrate"],
+                            bytesize=terminal["bytesize"],
                             timeout=terminal["timeout"],
                             parity=term_parity,
                             dsrdtr=dsrdtr,
@@ -261,7 +261,7 @@ def run_live_chat(youtube, tty, videoId, skip):
 
 def parse_html(tty, rootDir, filePath):
     if not os.path.isfile(filePath):
-        return 
+        return
     with open(filePath, encoding="utf-8") as file:
         soup = BeautifulSoup(file, 'html.parser')
         print(filePath, rootDir, soup.title.text)
@@ -320,7 +320,7 @@ def parse_head_html(RinTTY, path):
 
 def text_txt(tty, filePath):
     if not os.path.isfile(filePath):
-        return 
+        return
     with open(filePath, encoding="utf-8") as file:
         for line in file:
             line = line.strip()
@@ -376,5 +376,7 @@ if __name__ == '__main__':
         if args.mode == "statistics":
             stats_info(youtube)
 
-    
+    RinTTY.close()
+
+
 

@@ -8,6 +8,10 @@ This scripts can be used for grabbing liveChat messages from youtube Streams in 
 
 *   The pip package management tool
 
+    ```
+    pip install beautifulsoup4 pyserial
+    ```
+
 *   The Google APIs Client Library for Python:
     ```
     pip install --upgrade google-api-python-client
